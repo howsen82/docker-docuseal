@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  app:
+    container_name: docuseal
+    image: docuseal/docuseal:latest
+    environment:
+      FORCE_SSL: 'true'
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/docuseal
+    volumes:
+      - .:/data
+    ports:
+      - 3000:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:latest
+    volumes:
+      - './pg_data:/var/lib/postgresql/data'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: docuseal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:latest
+    command: caddy reverse-proxy --from $HOST --to app:3000
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    volumes:
+      - .:/data
+    environment:
+      - HOST=${HOST}
