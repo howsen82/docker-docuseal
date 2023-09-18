@@ -16,9 +16,10 @@ services:
         condition: service_healthy
 
   postgres:
+    container_name: postgres
     image: postgres:latest
     volumes:
-      - './pg_data:/var/lib/postgresql/data'
+      - /data/docuseal/db:/var/lib/postgresql/data:rw
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
